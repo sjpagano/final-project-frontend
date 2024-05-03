@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+    <link rel="stylesheet" href="navbar.css">
+    <link rel="stylesheet" href="general.css">
+    <link rel="stylesheet" href="cards.css">
+    <link rel="stylesheet" href="placeOrder.css">
+  </head>
+
+  <body>
+    <ul class="topnav">
+      <li><a href="index.html">Home</a></li>
+      <li><a href="trackOrder.html">Track Order</a></li>
+      <li><a href="">Help</a></li>
+      <li class="right" id="loginNav"><a href="login.html">Login</a></li>
+      <li class="right" id="cart"><a href=""><img src="emptyCart.png" alt="Cart"></a></li>
+    </ul>
+
+    <div class="container">
+      <div class="flower-details">
+          <img src="" alt="Flower Image" class="flower-image" id="flowerImg">
+      </div>
+      <div class="summary">
+          <h2 id="flowerName">The Angels</h2>
+          <div class="line"></div>
+          <h3>Delivery Date</h3>
+          <p id="date">2024-04-30</p>
+          <div class="line"></div>
+          <h3>Delivery Address</h3>
+          <p id="addressLines">Jane Smith<br>123 Flowers Avenue<br>Bloomington, IN 12345</p>
+          <div class="line"></div>
+          <div class="subtotal-box">
+              <h3>Subtotal</h3>
+              <p id="price">Price: $20</p>
+              <p>Shipping: $25</p>
+              <div class="discount-box">
+                  <p class="discount">Discount: $10 (Logged in)</p>
+              </div>
+              <div class="total">
+                  <p id="total">Total: $35</p>
+              </div>
+          </div>
+          <button class="place-order-button" onclick="placeOrder()">Place Order</button>
+      </div>
+  </div>
+
+  <div class="savings-box">
+      <p>You are saving <span class="amount">$10.00</span> on this order!</p>
+  </div>
+
+    <script src="configuration.js"></script>
+    <script>
+      if (isLoggedIn()) {
+        var loginNav = document.getElementById("loginNav");
+        loginNav.style.display = "none";
+    } else {
+      var savingBox = document.querySelector(".savings-box");
+      var discount = document.querySelector(".discount-box");
+      savingBox.style.display = "none";
+      discount.style.display = "none";
+      console.log("disabled");
+    }
+    loadFlower();
+    var flowerImg = document.getElementById("flowerImg");
+    var flowerName = document.getElementById("flowerName");
+    var date = document.getElementById("date");
+    var addressLines = document.getElementById("addressLines");
+    var price = document.getElementById("price");
+    var total = document.getElementById("total");
+    async function loadFlower() {
+      flower = await getFlower(getCart());
+      let name = flower.name; 
+      let dateInfo = getDate();
+      let priceInfo = getPrice();
+      let recipientInfo = [];
+      recipientInfo = getRecipient();
+      let myLocationInfo = [];
+      myLocationInfo = getLocation();
+      let image = await getTheImages(getCart());
+      flowerImg.src = URL.createObjectURL(image);
+      flowerName.textContent = name;
+      date.textContent = dateInfo;
+      if (myLocationInfo.length == 5) {
+        addressLines.innerHTML = `${recipientInfo[0] + " " + recipientInfo[1]}<br>${myLocationInfo[0]
+         + " " + myLocationInfo[1]}<br>${myLocationInfo[2] + " " + myLocationInfo[3] + " " + myLocationInfo[4]}`;
+      } else {addressLines.innerHTML = `${recipientInfo[0] + " " + recipientInfo[1]}<br>${myLocationInfo[0]}<br>${myLocationInfo[1]
+         + " " + myLocationInfo[2] + " " + myLocationInfo[3]}`;}
+      price.textContent = "Price: $" + priceInfo;
+      if (isLoggedIn()) {total.textContent = "Total: $" + (parseInt(priceInfo) + 15);}
+      else {total.textContent = "Total: $" + (parseInt(priceInfo) + 25);}
+    }
+    async function getFlower(id) {
+        let request = {
+        method: "GET",
+        headers: {
+            "Content-Type": "application/json",
+            "Authorization": "Bearer " + getTheToken()
+        }
+      };
+      if (getCart() != null) {
+        var cart = document.getElementById("cart");
+        cart.innerHTML = '<a href=""><img src="fullCart.png" alt="Cart"></a>';
+      } else {var cart = document.getElementById("cart");
+        cart.innerHTML = '<a href=""><img src="emptyCart.png" alt="Cart"></a>';}
+      if (isLoggedIn()) {
+        let flower = await fetch(getHost() + "/" + id, request);
+      let result = await flower.json();
+      return result;
+        }
+      let flower = await fetch(getHost() + "/" + id);
+      let result = await flower.json();
+      return result;
+      }
+        async function getTheImages(id) {
+        let request = {
+        method: "GET",
+        headers: {
+            "Content-Type": "application/json",
+            "Authorization": "Bearer " + getTheToken()
+        }
+      };
+      if (isLoggedIn()) {
+        let image = await fetch(getHost() + "/" + id + "/image", request);
+      let imageBlob = image.blob();
+      return imageBlob;
+        }
+      let image = await fetch(getHost() + "/" + id + "/image");
+      let imageBlob = image.blob();
+      return imageBlob;
+      }
+      async function placeOrder() {
+      let flowerGet = await getFlower(getCart());
+      let flower = {flowerId: flowerGet.flowerId, name: flowerGet.name, price: flowerGet.price};
+      let recipientInfo = [];
+      recipientInfo = getRecipient();
+      let recipientName = recipientInfo[0] + " " + recipientInfo[1];
+      let addressInfo = [];
+      addressInfo = getLocation();
+      var total = 0;
+      if (isLoggedIn()) {
+        total = parseInt(getPrice()) + 15;
+      } else {total = parseInt(getPrice()) + 25;}
+      let order = {customerId: 1, flower: flower, recipient: recipientName, date: getDate(), price: total, status: "submitted"};
+      let request = {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json"
+        },
+        body: JSON.stringify(order),
+      };
+      if (isLoggedIn()) {
+        let request = {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json",
+            "Authorization": "Bearer " + getTheToken()
+        },
+        body: JSON.stringify(order),
+      };
+      }
+      let response = await fetch(getHost() + "/orders", request);
+      console.log(response);
+      if (response.status == 200) {
+        alert("Ordered successfully!");
+        removeCart();
+      removeDateandPrice();
+      notPurchasing();
+      removeRecipient();
+      removeLocation();
+      location.href="index.html";
+      } else {
+        alert("Error: " + response.status);
+      }
+      }
+    
+    </script>
+  </body>
+</html>

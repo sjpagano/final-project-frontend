@@ -1,0 +1,13 @@
+* {
+  box-sizing: border-box;
+}
+
+.flowers {
+  width: 70%;
+  float: left;
+  padding: 15px;
+  margin-right: 5%;
+}
+
+
+

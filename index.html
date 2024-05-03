@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+    <link rel="stylesheet" href="navbar.css">
+    <link rel="stylesheet" href="general.css">
+    <link rel="stylesheet" href="cards.css">
+    <link rel="stylesheet" href="index.css" />
+  </head>
+
+  <body>
+    <ul class="topnav">
+      <li><a class="active" href="index.html">Home</a></li>
+      <li><a href="trackOrder.html">Track Order</a></li>
+      <li><a href="">Help</a></li>
+      <li class="right" id="loginNav"><a href="login.html">Login</a></li>
+      <li class="right" id="cart"><a href=""><img src="emptyCart.png" alt="Cart"></a></li>
+    </ul>
+
+    <div class="flowers">
+        <div id="list" class="cards"></div>
+    </div>
+
+    <script src="configuration.js"></script>
+    <script>
+      clearStorage();
+      if (getCart() != null) {
+        var cart = document.getElementById("cart");
+        cart.innerHTML = '<a href=""><img src="fullCart.png" alt="Cart"></a>';
+      } else {var cart = document.getElementById("cart");
+        cart.innerHTML = '<a href=""><img src="emptyCart.png" alt="Cart"></a>';}
+      if (isLoggedIn()) {
+        var loginNav = document.getElementById('loginNav');
+        loginNav.style.display = 'none';
+    }
+      let host = getHost();
+      let flowers = [];
+      let list = document.getElementById("list");
+      displayTheFlowers();
+
+      async function getAll() {
+        let request = {
+        method: "GET",
+        headers: {
+            "Content-Type": "application/json",
+            "Authorization": "Bearer " + getTheToken()
+        }
+      };
+        if (isLoggedIn()) {
+        let response = await fetch(host + "/flowers", request);
+        let result = await response.json();
+        return result;
+        }
+        let response = await fetch(host + "/flowers");
+        let result = await response.json();
+        return result;
+      }
+
+      async function getTheImages(id) {
+        let request = {
+        method: "GET",
+        headers: {
+            "Content-Type": "application/json",
+            "Authorization": "Bearer " + getTheToken()
+        }
+      };
+      if (isLoggedIn()) {
+        let image = await fetch(getHost() + "/" + id + "/image", request);
+      let imageBlob = image.blob();
+      return imageBlob;
+        }
+      let image = await fetch(getHost() + "/" + id + "/image");
+      let imageBlob = image.blob();
+      return imageBlob;
+      }
+
+      async function displayTheFlowers() {
+        if (flowers.length == 0) {
+          flowers = await getAll();
+        }
+        list.innerHTML = "";
+        for (let flower of flowers) {
+          let div = document.createElement("div");
+          div.id = `${flower.flowerId}`;
+          div.className = "card";
+          let image = await getTheImages(flower.flowerId);
+          let innerHtml = `
+       
+      <img src="${URL.createObjectURL(image)}" id="${flower.flowerId}" alt="flower" onclick="addToBasket(event)" style="width:100%">
+      <div class="container">
+        <h4><b>${flower.name}</b></h4> 
+        <p><b>$${flower.price}</b></p>
+      </div>
+   
+          `;
+          div.innerHTML = innerHtml;
+          list.appendChild(div);
+        }
+      }
+
+      function addToBasket(event) {
+        var clickedElementId = event.target.id;
+        saveCart(clickedElementId);
+        location.href="addToBasket.html";
+      }
+      </script>
+
+   
+  </body>
+</html>

@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+    <link rel="stylesheet" href="navbar.css">
+    <link rel="stylesheet" href="general.css">
+    <link rel="stylesheet" href="cards.css">
+    <link rel="stylesheet" href="trackOrder.css">
+  </head>
+
+  <body>
+    <ul class="topnav">
+      <li><a href="index.html">Home</a></li>
+      <li><a class="active"  href="trackOrder.html">Track Order</a></li>
+      <li><a href="">Help</a></li>
+      <li class="right" id="loginNav"><a href="login.html">Login</a></li>
+      <li class="right" id="cart"><a href=""><img src="emptyCart.png" alt="Cart"></a></li>
+    </ul>
+
+    <h1>My Orders</h1>
+    <div id="ordersContainer"></div>
+
+    <script src="configuration.js"></script>
+    <script>
+      if (getCart() != null) {
+        var cart = document.getElementById("cart");
+        cart.innerHTML = '<a href=""><img src="fullCart.png" alt="Cart"></a>';
+      } else {var cart = document.getElementById("cart");
+        cart.innerHTML = '<a href=""><img src="emptyCart.png" alt="Cart"></a>';}
+    if (isLoggedIn()) {
+        var loginNav = document.getElementById("loginNav");
+        loginNav.style.display = "none";
+    } else {
+      isTracking();
+        location.href="login.html";
+    }
+    let orders = [];
+    loadOrders();   
+    async function getOrders() {
+        let request = {
+        method: "GET",
+        headers: {
+            "Content-Type": "application/json",
+        }
+      };
+      if (isLoggedIn()) {
+        request = {
+        method: "GET",
+        headers: {
+            "Content-Type": "application/json",
+            "Authorization": "Bearer " + getTheToken()
+        }
+      };
+      }
+      let response = await fetch(getHost() + "/orders/1");
+        let result = await response.json();
+        return result;
+    }
+    var ordersContainer = document.getElementById("ordersContainer");
+    async function loadOrders() {
+        orders = await getOrders();
+        for (let order of orders) {
+            var orderDiv = document.createElement("div");
+            var flower = order.flower;
+            orderDiv.classList.add("order");
+
+            orderDiv.innerHTML = `
+                <h2>Order Details</h2>
+                <p><strong>Flower Name:</strong> ${flower.name}</p>
+                <p><strong>Total Cost:</strong> $${order.price}</p>
+                <p><strong>Recipient Name:</strong> ${order.recipient}</p>
+                <p><strong>Status:</strong> ${order.status}</p>
+            `;
+            ordersContainer.appendChild(orderDiv);
+        }
+        }
+    </script>
+  </body>
+</html>

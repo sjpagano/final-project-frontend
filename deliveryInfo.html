@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+    <link rel="stylesheet" href="navbar.css">
+    <link rel="stylesheet" href="general.css">
+    <link rel="stylesheet" href="cards.css">
+    <link rel="stylesheet" href="deliveryinfo.css">
+  </head>
+
+  <body>
+    <ul class="topnav">
+      <li><a href="index.html">Home</a></li>
+      <li><a href="trackOrder.html">Track Order</a></li>
+      <li><a href="">Help</a></li>
+      <li class="right" id="loginNav"><a href="login.html">Login</a></li>
+      <li class="right" id="cart"><a href=""><img src="emptyCart.png" alt="Cart"></a></li>
+    </ul>
+
+    <div class="top-info">
+        <img src="delivprogress.png" alt="progress" class="progress">
+        <div class="buttons">
+          <button class="login-button" onclick="login()">Login</button>
+          <button class="signup-button" onclick="login()">Signup</button>
+        </div>
+    </div>
+
+     <div class="main" id="main">
+        <div class="container">
+            <div class="flower-info">
+              <h1 id="flowerName">Flower</h1>
+              <p id="flowerPrice">Price: $20</p>
+            </div>
+            <div class="flower-image">
+              <img src="" id="flowerImg" alt="flower">
+            </div>
+            <div class="delivery-details">
+              <h2>Delivery Date</h2>
+              <p id="flowerDate">Delivery Date: <input type="text" id="deliveryDate" name="deliveryDate" required></p>
+            </div>
+            <div class="recipient-details">
+              <h2>Recipient Details</h2>
+              <label for="firstName">First Name:*</label>
+              <input type="text" id="firstName" name="firstName" required>
+              <label for="lastName">Last Name:*</label>
+              <input type="text" id="lastName" name="lastName" required>
+              <label for="relationship">Relationship:*</label>
+              <select id="relationship" name="relationship">
+                <option value="friend">Friend</option>
+                <option value="family">Family</option>
+                <option value="colleague">Colleague</option>
+                <option value="girlfriend">Girlfriend</option>
+                <option value="boyfriend">Boyfriend</option>
+                <option value="wife">Wife</option>
+                <option value="husband">Husband</option>
+              </select>
+            </div>
+            <div class="deliver-to">
+              <h2>Deliver To</h2>
+              <label for="address">Address:*</label>
+              <input type="text" id="address" name="address" required>
+              <label for="aptSuite">Apt/Suite:</label>
+              <input type="text" id="aptSuite" name="aptSuite">
+              <label for="city">City:*</label>
+              <input type="text" id="city" name="city" required>
+              <label for="state">State:*</label>
+              <input type="text" id="state" name="state" required>
+              <label for="zip">Zip Code:*</label>
+              <input type="text" id="zip" name="zip" required>
+            </div>
+            <button type="button" class="continue-button" onclick="placeOrder()">Continue</button>
+          </div>
+    </div>
+        <script src="configuration.js"></script>
+        <script>
+                if (isLoggedIn()) {
+        var loginNav = document.getElementById('loginNav');
+        loginNav.style.display = 'none';
+    }
+    if (getCart() != null) {
+        var cart = document.getElementById("cart");
+        cart.innerHTML = '<a href=""><img src="fullCart.png" alt="Cart"></a>';
+      } else {var cart = document.getElementById("cart");
+        cart.innerHTML = '<a href=""><img src="emptyCart.png" alt="Cart"></a>';}
+        loadFlower();
+        let flowerImg = document.getElementById("flowerImg");
+        let flowerName = document.getElementById("flowerName");
+        let flowerPrice = document.getElementById("flowerPrice");
+        let flowerDate = document.getElementById("flowerDate")
+        let firstName = document.getElementById("firstName");
+        let lastName = document.getElementById("lastName");
+        let relationship = document.getElementById("relationship");
+        let address = document.getElementById("address");
+        let aptSuite = document.getElementById("aptSuite");
+        let city = document.getElementById("city");
+        let state = document.getElementById("state");
+        let zip = document.getElementById("zip");
+
+        if (isLoggedIn()) {
+    var topInfoDiv = document.querySelector('.top-info');
+    topInfoDiv.style.display = "none";
+    var main = document.getElementById("main");
+    main.style.marginTop = '5%';
+}
+
+
+        async function loadFlower() {
+        let flower = await getFlower(getCart());
+        let date = getDate();
+        let price = getPrice();
+        let name = flower.name; 
+        let image = await getTheImages(getCart());
+        flowerImg.src = URL.createObjectURL(image);
+        flowerName.textContent = name;
+        flowerPrice.textContent = `Price: $${price}`;
+        flowerDate.textContent = date;
+        }
+        if (getPurchasing()) {
+            let recipient = getRecipient();
+            let myLocation = getLocation();
+            firstName.value = recipient[0];
+            lastName.value = recipient[1];
+            relationship.value = recipient[2];
+            address.value = myLocation[0];
+            if (myLocation.length == 5) {
+                aptSuite.value = myLocation[1];
+                city.value = myLocation[2];
+                state.value = myLocation[3];
+                zip.value = myLocation[4];
+            }
+            else {
+                city.value = myLocation[1];
+                state.value = myLocation[2];
+                zip.value = myLocation[3];
+            }
+            notPurchasing();
+            removeRecipient();
+            removeLocation();
+        }
+
+        async function getFlower(id) {
+        let request = {
+        method: "GET",
+        headers: {
+            "Content-Type": "application/json",
+            "Authorization": "Bearer " + getTheToken()
+        }
+      };
+      if (isLoggedIn()) {
+        let flower = await fetch(getHost() + "/" + id, request);
+      let result = await flower.json();
+      return result;
+        }
+      let flower = await fetch(getHost() + "/" + id);
+      let result = await flower.json();
+      return result;
+      }
+        async function getTheImages(id) {
+        let request = {
+        method: "GET",
+        headers: {
+            "Content-Type": "application/json",
+            "Authorization": "Bearer " + getTheToken()
+        }
+      };
+      if (isLoggedIn()) {
+        let image = await fetch(getHost() + "/" + id + "/image", request);
+      let imageBlob = image.blob();
+      return imageBlob;
+        }
+      let image = await fetch(getHost() + "/" + id + "/image");
+      let imageBlob = image.blob();
+      return imageBlob;
+      }
+            function login() {
+                isPurchasing();
+                let recipient = [];
+                recipient.push(firstName.value);
+                recipient.push(lastName.value);
+                recipient.push(relationship.value);
+                let location = [];
+                location.push(address.value);
+                if(aptSuite.value != "") {
+                    location.push(aptSuite.value);
+                }
+                location.push(city.value);
+                location.push(state.value);
+                location.push(zip.value);
+                setRecipient(recipient);
+                setLocation(location);
+                window.location.assign("login.html");
+            }
+
+            function placeOrder() {
+              let recipient = [];
+                recipient.push(firstName.value);
+                recipient.push(lastName.value);
+                recipient.push(relationship.value);
+                let location = [];
+                location.push(address.value);
+                if(aptSuite.value != "") {
+                    location.push(aptSuite.value);
+                }
+                location.push(city.value);
+                location.push(state.value);
+                location.push(zip.value);
+                setRecipient(recipient);
+                setLocation(location);
+                window.location.assign("placeOrder.html");
+            }
+        </script>
+  </body>
+</html>

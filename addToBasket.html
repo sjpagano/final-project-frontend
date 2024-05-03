@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+    <link rel="stylesheet" href="navbar.css">
+    <link rel="stylesheet" href="general.css">
+    <link rel="stylesheet" href="cards.css">
+    <link rel="stylesheet" href="addToBasket.css">
+  </head>
+
+  <body>
+    <ul class="topnav">
+      <li><a href="index.html">Home</a></li>
+      <li><a href="trackOrder.html">Track Order</a></li>
+      <li><a href="">Help</a></li>
+      <li class="right" id="loginNav"><a href="login.html">Login</a></li>
+      <li class="right" id="cart"><a href=""><img src="emptyCart.png" alt="Cart"></a></li>
+    </ul>
+
+    <div class="container">
+        <div class="flower-image">
+          <img src="" id="flowerImg" alt="Flower Image">
+        </div>
+        <div class="flower-info">
+          <h1 class="flower-name" id="flowerName">Rose Bouquet</h1>
+          <form>
+            <label for="delivery-date">Select Delivery Date:</label>
+            <input type="date" id="delivery-date" name="delivery-date" required>
+          </form>
+          <form>
+            <p>Select Purchase Option:</p>
+            <label>
+              <input type="radio" name="purchase-option" value="subscription" required>
+              Start a Subscription: <span id="subscription-price">$56</span> + free shipping<br>
+              <span class="additional-text">
+                Best Value: Up to 30% off + free shipping on subscription deliveries.<br>
+                Flexible: Pick your flowers, date & recipient every month, or set it & forget it.<br>
+                No Obligations: Skip as often as you like. Cancel anytime.
+              </span>
+            </label>
+            <label>
+              <input type="radio" name="purchase-option" value="one-time" required>
+              One-time Purchase: <span id="one-time-price">$25</span>
+            </label>
+            <button type="button" onclick="submitCart()">Add to Basket</button>
+          </form>
+        </div>
+        <div style="clear: both;"></div>
+      </div>
+      <script src="configuration.js"></script>
+      <script>
+              if (isLoggedIn()) {
+        var loginNav = document.getElementById('loginNav');
+        loginNav.style.display = 'none';
+    }
+    if (getCart() != null) {
+        var cart = document.getElementById("cart");
+        cart.innerHTML = '<a href=""><img src="fullCart.png" alt="Cart"></a>';
+      } else {var cart = document.getElementById("cart");
+        cart.innerHTML = '<a href=""><img src="emptyCart.png" alt="Cart"></a>';}
+        loadFlower();
+        async function loadFlower() {
+        let flowerImg = document.getElementById("flowerImg");
+        let flowerName = document.getElementById("flowerName");
+        let price1Text = document.getElementById("subscription-price");
+        let price2Text = document.getElementById("one-time-price");
+        let flower = await getFlower(getCart());
+        let price = flower.price;
+        let name = flower.name; 
+        let image = await getTheImages(getCart());
+        flowerImg.src = URL.createObjectURL(image);
+        flowerName.textContent = name;
+        price1Text.textContent = `$${Math.ceil(price * 0.7)}`
+        price2Text.textContent = `$${price}`
+        }
+        async function getFlower(id) {
+        let request = {
+        method: "GET",
+        headers: {
+            "Content-Type": "application/json",
+            "Authorization": "Bearer " + getTheToken()
+        }
+      };
+      if (isLoggedIn()) {
+        let flower = await fetch(getHost() + "/" + id, request);
+      let result = await flower.json();
+      return result;
+        }
+      let flower = await fetch(getHost() + "/" + id);
+      let result = await flower.json();
+      return result;
+      }
+        async function getTheImages(id) {
+        let request = {
+        method: "GET",
+        headers: {
+            "Content-Type": "application/json",
+            "Authorization": "Bearer " + getTheToken()
+        }
+      };
+      if (isLoggedIn()) {
+        let image = await fetch(getHost() + "/" + id + "/image", request);
+      let imageBlob = image.blob();
+      return imageBlob;
+        }
+      let image = await fetch(getHost() + "/" + id + "/image");
+      let imageBlob = image.blob();
+      return imageBlob;
+      }
+      function submitCart() {
+        var deliveryDate = document.getElementById("delivery-date").value;
+        var paymentOption = document.querySelector('input[name="purchase-option"]:checked');
+        var paymentOptionValue = paymentOption ? paymentOption.value : null;
+        if (deliveryDate != "" && paymentOptionValue != null) {
+        var paymentSearch = paymentOptionValue + "-price";
+        var price = document.getElementById(paymentSearch)
+        var priceVal = price.textContent;
+        var priceShortened = priceVal.substring(1,priceVal.length);
+        saveDateandPrice(deliveryDate,priceShortened);
+        console.log(getDate());
+        console.log(getPrice());
+        location.href="deliveryInfo.html";
+        }
+        else {
+            alert("Please fill out every field");
+        }
+      }
+      </script>
+  </body>
+</html>

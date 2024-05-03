@@ -1,0 +1,87 @@
+body {
+    font-family: Arial, sans-serif;
+    margin: 0;
+    padding: 0;
+}
+
+.container {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    height: 100vh;
+    padding: 0 20px;
+}
+
+.flower-details {
+    margin-right: 20px;
+}
+
+.flower-image {
+    max-width: 300px;
+    height: auto;
+    margin-top: 100px;
+}
+
+.summary {
+    flex: 1;
+    text-align: left;
+}
+
+.line {
+    border-top: 1px solid #000;
+    margin: 20px 0;
+}
+
+.subtotal-box {
+    background-color: #f0f0f0;
+    padding: 20px;
+    border-radius: 5px;
+    margin: 0 auto;
+    text-align: left;
+}
+
+.discount-box {
+    display: block;
+}
+
+.discount {
+    color: #006400;
+    margin: 0;
+    display: inline; /*this is for disabling discount*/
+}
+
+.total {
+    font-weight: bold;
+    margin-top: 10px;
+}
+
+.place-order-button {
+    padding: 10px 20px;
+    background-color: #007bff;
+    color: #fff;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 16px;
+    margin-top: 20px;
+}
+
+.place-order-button:hover {
+    background-color: #0056b3;
+}
+
+.savings-box {
+    position: fixed;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    background-color: rgba(0, 128, 0, 0.5);
+    padding: 10px;
+    border-radius: 5px;
+    color: #fff;
+    display:block; /*this is for disabling box*/
+}
+
+.amount {
+    font-weight: bold;
+}
