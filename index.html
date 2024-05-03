@@ -19,9 +19,42 @@
       <li class="right" id="cart"><a href=""><img src="emptyCart.png" alt="Cart"></a></li>
     </ul>
 
-    <div class="flowers">
-        <div id="list" class="cards"></div>
-    </div>
+    <div class="filters">
+      <label for="flowerType">Flower Type:</label>
+      <select id="flowerType">
+          <option value="mixed">Mixed</option>
+          <option value="roses">Roses</option>
+          <option value="lilies">Lilies</option>
+          <option value="tulips">Tulips</option>
+          <option value="daisies">Daisies</option>
+      </select>
+
+      <label for="occasion">Occasion:</label>
+      <select id="occasion">
+          <option value="mothersDay">Mother's Day</option>
+          <option value="birthday">Birthday</option>
+          <option value="thankYou">Thank You</option>
+      </select>
+
+      <label for="color">Color:</label>
+      <select id="color">
+          <option value="mixed">Mixed</option>
+          <option value="red">Red</option>
+          <option value="yellow">Yellow</option>
+          <option value="green">Green</option>
+          <option value="orange">Orange</option>
+      </select>
+
+      <label for="sorting">Sorting:</label>
+      <select id="sorting">
+          <option value="lowToHigh">Price: Low to High</option>
+          <option value="highToLow">Price: High to Low</option>
+      </select>
+  </div>
+
+  <div class="flowers">
+      <div id="list" class="cards"></div>
+  </div>
 
     <script src="configuration.js"></script>
     <script>
@@ -75,6 +108,64 @@
       let imageBlob = image.blob();
       return imageBlob;
       }
+      let flowersData = [
+        { name: "Sugar Rush", type: "roses", occasion: "all", color: "all", price: 54 },
+        { name: "Lemonade", type: "roses", occasion: "all", color: "all", price: 54 },
+        { name: "The Angels", type: "roses", occasion: "all", color: "all", price: 54 },
+        { name: "Unbreakable", type: "lilies", occasion: "all", color: "all", price: 59 },
+        { name: "Sierra Sunset", type: "lilies", occasion: "all", color: "all", price: 59 },
+        { name: "Casablanca", type: "lilies", occasion: "all", color: "all", price: 59 }
+    ];
+    
+    function findFlowerByName(name) {
+    return flowersData.find(flower => flower.name === name);
+}
+
+      async function filterAndSortFlowers() {
+        if (flowers.length == 0) {
+          flowers = await getAll();
+        }
+    let flowerType = document.getElementById("flowerType").value;
+    let occasion = document.getElementById("occasion").value;
+    let color = document.getElementById("color").value;
+    let sorting = document.getElementById("sorting").value;
+
+    let filteredFlowers = flowers.filter(flower => {
+        return (
+            (findFlowerByName(flower.name).type == flowerType || flowerType === "mixed") &&
+            (findFlowerByName(flower.name).occasion == occasion || findFlowerByName(flower.name).occasion === "all") &&
+            (findFlowerByName(flower.name).color == color || findFlowerByName(flower.name).color === "all")
+        );
+    });
+
+    console.log(filteredFlowers);
+
+    if (sorting === "lowToHigh") {
+        filteredFlowers.sort((a, b) => a.price - b.price);
+    } else if (sorting === "highToLow") {
+        filteredFlowers.sort((a, b) => b.price - a.price);
+    }
+    list.innerHTML = "";
+    for (let flower of filteredFlowers) {
+        let div = document.createElement("div");
+        div.id = `${flower.flowerId}`;
+        div.className = "card";
+        let image = await getTheImages(flower.flowerId);
+        let innerHtml = `
+            <img src="${URL.createObjectURL(image)}" id="${flower.flowerId}" alt="flower" onclick="addToBasket(event)" style="width:100%">
+            <div class="container">
+                <h4><b>${flower.name}</b></h4> 
+                <p><b>$${flower.price}</b></p>
+            </div>
+        `;
+        div.innerHTML = innerHtml;
+        list.appendChild(div);
+    }
+}
+document.getElementById("flowerType").addEventListener("change", filterAndSortFlowers);
+document.getElementById("occasion").addEventListener("change", filterAndSortFlowers);
+document.getElementById("color").addEventListener("change", filterAndSortFlowers);
+document.getElementById("sorting").addEventListener("change", filterAndSortFlowers);
 
       async function displayTheFlowers() {
         if (flowers.length == 0) {
